@@ -16,45 +16,179 @@
     <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="http://underscorejs.org/underscore.js" type="text/javascript"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="http://backbonejs.org/backbone.js" type="text/javascript"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/backbone-localstorage.js/1.0/backbone.localStorage-min.js" type="text/javascript"></script>
 </head>
 <body>
-<h1>Hello, world!</h1>
-
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="js/bootstrap.min.js"></script>
+<section id="noteapp">
+    <header id="header">
+        <h1>Message to send</h1>
+    </header>
 
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo">Open modal for @mdo</button>
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@fat">Open modal for @fat</button>
-<button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@getbootstrap">Open modal for @getbootstrap</button>
-...more buttons...
+    <section id="main">
+        <!-- display something without template-->
+        <ul id="note-list">Message is supposed to be here!</ul>
+    </section>
 
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="exampleModalLabel">New message</h4>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="form-group">
-                        <label for="message-text" class="control-label">Message:</label>
-                        <textarea class="form-control" id="message-text"></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Send message</button>
+    <button id="mainBtn" type="button" class="btn btn-primary"  data-toggle="modal" data-target="#exampleModal" >Send a Message</button>
+
+    <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">New message</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="message-text" class="control-label">Message:</label>
+                            <textarea class="form-control" id="message-text"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary send">Send message</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
-</body>
+
+    <!--<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel">-->
+        <!--<div class="modal-dialog" role="document">-->
+            <!--<div class="modal-content">-->
+                <!--<div class="modal-header">-->
+                    <!--<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span-->
+                            <!--aria-hidden="true">&times;</span></button>-->
+                    <!--<h4 class="modal-title" id="exampleModalLabel">New message</h4>-->
+                <!--</div>-->
+                <!--<div class="modal-body">-->
+                    <!--<form>-->
+                        <!--<div class="form-group">-->
+                            <!--<label for="message" class="control-label">Message:</label>-->
+                            <!--<textarea class="form-control" id="message"></textarea>-->
+                        <!--</div>-->
+                    <!--</form>-->
+                <!--</div>-->
+                <!--<div class="modal-footer">-->
+                    <!--<button type="button" class="btn btn-default close" data-dismiss="modal">Close</button>-->
+                    <!--<button type="button" class="btn btn-primary">Send message</button>-->
+                <!--</div>-->
+            <!--</div>-->
+        <!--</div>-->
+    <!--</div>-->
+</section>
+
+
+<!-- template for displaying the note -->
+<script type="text/template" id="note-template">
+    <div class="view">
+        <label><%- message %></label>
+        <button class="edit">edit</button>
+        <button class="destroy">remove</button>
+    </div>
+</script>
+<!-- ========= -->
+<!-- Libraries -->
+<!-- ========= -->
 
 <script type="text/javascript">
     'use strict';
+//    var app = {}; // create namespace for our app
+    var app = {}; // create namespace for our app
+
+    //--------------
+    // Models, the message to be published
+    //--------------
+    app.Note = Backbone.Model.extend({
+        defaults: {
+            message: ''
+        },
+        localStorage: new Store("single-note")
+    });
+
+    app.note = new app.Note();
+
+    //--------------
+    // Collections, I really need this?
+    //--------------
+//    app.NoteList = Backbone.Collection.extend({
+//        defaults: {
+//            title: '',
+//            completed: false
+//        },
+//        model: app.Note,
+//        localStorage: new Store("ARTs-note")
+//    });
+
+//    app.noteList = new app.NoteList();
+
+    //--------------
+    // Views
+    //--------------
+    app.NoteView = Backbone.View.extend({
+        tagName: 'p',
+        template: _.template($('#note-template').html()),
+        // may be later toto
+        initialize: function () {
+//            this.model = this.model || new Backbone.Model();
+//            this.model.note = new app.Note();
+//            this.model.note.fetch();
+            // maybe later
+//            this.model.on('change', this.render, this);
+//            this.model.on('destroy', this.render, this);
+        },
+        render: function () {
+            this.$el.html(this.template(this.model.toJSON()));
+//            this.input = this.$('.edit');
+            return this; // enable chained calls
+        }
+    });
+
+    app.AppView = Backbone.View.extend({
+        el: '#noteapp',
+        initialize: function () {
+            this.input = this.$('#message-text');
+        },
+        events: {
+//            'keypress #message': 'sendByEnter',
+//            'blur .edit': 'close',
+            'click .send': 'sendByClick'
+        },
+        sendByClick: function (e) {
+            alert('adding one');
+//            if (e.which !== 13 || !this.input.val().trim()) {
+//                return;
+//            }
+            alert(this.input.val().trim());
+            app.note.set({message: this.input.val().trim()});
+            var view = new app.NoteView({model: app.note});
+            $('#note-list').append(view.render().el)
+        },
+
+        render:function(){
+            app.noteView = new app.NoteView();
+            $('#noteapp').append(app.noteView.render().$el);
+        },
+//
+        close: function () {
+            var value = this.input.val().trim();
+            if (value) {
+                this.model.save({message: value});
+            }
+//            this.$el.removeClass('editing');
+        }
+
+    });
+
+    app.appView = new app.AppView();
+    app.appView.render()
+
 </script>
+</body>
 </html>
